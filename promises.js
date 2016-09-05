@@ -4,16 +4,32 @@ function isCallable(a) {
 
 function fulfil(promise, value) {
     if (promise.state === "pending") {
-        promise.state = "fulfilled";
-        promise.value = value;
-        var reactions = promise.fulfilReactions;
-        promise.rejectReactions = [];
-        promise.fulfilReactions = [];
-        reactions.forEach(function (reaction) {
+
+        if (value === promise) {
+            reject(promise, new TypeError("Can't resolve a promise with itself."));
+        }
+
+        if (value && value.then) {
             setTimeout(function () {
-                reaction(value);
+                value.then(function (x) {
+                    fulfil(promise, x);
+                }, function (x) {
+                    reject(promise, x);
+                });
             }, 0);
-        });
+        } else {
+            promise.state = "fulfilled";
+            promise.value = value;
+            var reactions = promise.fulfilReactions;
+            promise.rejectReactions = [];
+            promise.fulfilReactions = [];
+            reactions.forEach(function (reaction) {
+                setTimeout(function () {
+                    reaction(value);
+                }, 0);
+            });
+        }
+
     }
 }
 
