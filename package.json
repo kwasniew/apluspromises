@@ -1,0 +1,14 @@
+{
+  "name": "teachable-promises",
+  "version": "1.0.0",
+  "description": "Promises/A+ Compliant implementation for teaching purposes",
+  "main": "index.js",
+  "devDependencies": {
+    "promises-aplus-tests": "*"
+  },
+  "scripts": {
+    "test": "promises-aplus-tests test/my-adapter"
+  },
+  "author": "",
+  "license": "ISC"
+}
