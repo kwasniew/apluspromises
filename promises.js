@@ -21,21 +21,21 @@ function resolveThenable(promise, x, then) {
         reject(promise, new TypeError("Can't resolve a promise with itself"));
     }
 
-    var ran = false;
+    var called = false;
 
     try {
         then.call(x, function (x) {
-            if (ran) return;
-            ran = true;
+            if (called) return;
+            called = true;
             return resolve(promise, x);
         }, function (x) {
-            if (ran) return;
-            ran = true;
+            if (called) return;
+            called = true;
             return reject(promise, x);
         });
     } catch (e) {
-        if (ran) return;
-        ran = true;
+        if (called) return;
+        called = true;
         return reject(promise, e);
     }
 }
