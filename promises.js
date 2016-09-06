@@ -9,10 +9,7 @@ function async(fn) {
 function resolveNonThenable(promise, value) {
     promise.state = "fulfilled";
     promise.value = value;
-    var reactions = promise.fulfilReactions;
-    promise.rejectReactions = [];
-    promise.fulfilReactions = [];
-    reactions.forEach(function (reaction) {
+    promise.fulfilReactions.forEach(function (reaction) {
         async(function () {
             reaction(value);
         });
@@ -66,10 +63,7 @@ function reject(promise, value) {
     if (promise.state === "pending") {
         promise.state = "rejected";
         promise.value = value;
-        var reactions = promise.rejectReactions;
-        promise.rejectReactions = [];
-        promise.fulfilReactions = [];
-        reactions.forEach(function (reaction) {
+        promise.rejectReactions.forEach(function (reaction) {
             async(function () {
                 reaction(value);
             });
