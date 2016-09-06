@@ -6,25 +6,25 @@ function async(fn) {
     setTimeout(fn, 0);
 }
 
-function resolveNonThenable(promise, value) {
+function resolveNonThenable(promise, x) {
     promise.state = "fulfilled";
-    promise.value = value;
+    promise.value = x;
     promise.fulfilReactions.forEach(function (reaction) {
         async(function () {
-            reaction(value);
+            reaction(x);
         });
     });
 }
 
-function resolveThenable(promise, value, then) {
-    if (value === promise) {
+function resolveThenable(promise, x, then) {
+    if (x === promise) {
         reject(promise, new TypeError("Can't resolve a promise with itself"));
     }
 
     var ran = false;
 
     try {
-        then.call(value, function (x) {
+        then.call(x, function (x) {
             if (ran) return;
             ran = true;
             return resolve(promise, x);
@@ -40,28 +40,28 @@ function resolveThenable(promise, value, then) {
     }
 }
 
-function resolve(promise, value) {
+function resolve(promise, x) {
     if (promise.state === "pending") {
         try {
-            var then = value.then;
+            var then = x.then;
         } catch (e) {
             reject(promise, e);
         }
-        if (typeof value === "object" && typeof then === "function") {
-            resolveThenable(promise, value, then);
+        if (typeof x === "object" && typeof then === "function") {
+            resolveThenable(promise, x, then);
         } else {
-            resolveNonThenable(promise, value);
+            resolveNonThenable(promise, x);
         }
     }
 }
 
-function reject(promise, value) {
+function reject(promise, x) {
     if (promise.state === "pending") {
         promise.state = "rejected";
-        promise.value = value;
+        promise.reason = x;
         promise.rejectReactions.forEach(function (reaction) {
             async(function () {
-                reaction(value);
+                reaction(x);
             });
         });
     }
@@ -73,6 +73,7 @@ function Promise(executor) {
     }
 
     this.value = null;
+    this.reason = null;
     this.state = "pending";
     this.fulfilReactions = [];
     this.rejectReactions = [];
@@ -96,32 +97,32 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 
     return new Promise(function executor(resolve, reject) {
 
-        function safelyResolve(callback, value) {
+        function safelyResolve(callback, x) {
             try {
-                resolve(callback(value));
+                resolve(callback(x));
             } catch (e) {
                 reject(e);
             }
         }
 
         if (!isFunction(onFulfilled)) {
-            onFulfilled = function (x) {
-                return x;
+            onFulfilled = function (value) {
+                return value;
             }
         }
 
         if (!isFunction(onRejected)) {
-            onRejected = function (x) {
-                return reject(x);
+            onRejected = function (reason) {
+                return reject(reason);
             };
         }
 
         if (originalPromise.state === "pending") {
-            originalPromise.fulfilReactions.push(function (value) {
-                safelyResolve(onFulfilled, value);
+            originalPromise.fulfilReactions.push(function (x) {
+                safelyResolve(onFulfilled, x);
             });
-            originalPromise.rejectReactions.push(function (value) {
-                safelyResolve(onRejected, value);
+            originalPromise.rejectReactions.push(function (x) {
+                safelyResolve(onRejected, x);
             });
         } else if (originalPromise.state === "fulfilled") {
             async(function () {
@@ -129,7 +130,7 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
             });
         } else if (originalPromise.state === "rejected") {
             async(function () {
-                safelyResolve(onRejected, originalPromise.value)
+                safelyResolve(onRejected, originalPromise.reason)
             });
         }
     });
