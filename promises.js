@@ -6,7 +6,7 @@ function async(fn) {
     setTimeout(fn, 0);
 }
 
-function resolveNonThenable(promise, x) {
+function fulfil(promise, x) {
     promise.state = "fulfilled";
     promise.value = x;
     promise.fulfilReactions.forEach(function (reaction) {
@@ -16,19 +16,19 @@ function resolveNonThenable(promise, x) {
     });
 }
 
-function resolveThenable(promise, x, then) {
-    if (x === promise) {
+function resolveThenable(promise, thenable, then) {
+    if (thenable === promise) {
         reject(promise, new TypeError("Can't resolve a promise with itself"));
     }
 
     var called = false;
 
     try {
-        then.call(x, function (x) {
+        then.call(thenable, function resolvePromise(x) {
             if (called) return;
             called = true;
             return resolve(promise, x);
-        }, function (x) {
+        }, function rejectPromise(x) {
             if (called) return;
             called = true;
             return reject(promise, x);
@@ -50,7 +50,7 @@ function resolve(promise, x) {
         if (typeof x === "object" && typeof then === "function") {
             resolveThenable(promise, x, then);
         } else {
-            resolveNonThenable(promise, x);
+            fulfil(promise, x);
         }
     }
 }
