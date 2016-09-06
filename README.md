@@ -11,12 +11,13 @@ Minimal Promises/A+ implementation based on executable spec from https://github.
 ```
 npm install
 npm test
+npm test:es6 // requires node 6+
 ```
 
 ## Notes and design goals
 
 * created for learning purposes
-* works with ES5 
+* separate ES5 and ES6 implementation (arrow functions, classes)
 * follows ubiquitous language from the spec
 * easy to read at a cost of performance
 * inspired by: https://github.com/robotlolita/robotlolita.github.io/blob/master/examples/promises/aplus/src/promises.js
