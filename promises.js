@@ -19,7 +19,8 @@ function fulfil(promise, value) {
 
         var ran = false;
 
-        if (then) {
+
+        if (typeof then === 'function') {
 
             setTimeout(function () {
                 try {
@@ -164,14 +165,7 @@ Promise.reject = function (x) {
 
 Promise.resolve(1).then(function () {
     return {
-        then: function (onFulfilled) {
-            onFulfilled({
-                then: function (onFulfilled) {
-                    onFulfilled(2);
-                }
-            });
-            onFulfilled(100);
-        }
+        then: 5
     };
 }).then(function (data) {
     console.log("success ", data);
