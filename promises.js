@@ -9,18 +9,41 @@ function fulfil(promise, value) {
             reject(promise, new TypeError("Can't resolve a promise with itself."));
         }
 
-        if(value) {
-            var then = value.then;
+        if (value) {
+            try {
+                var then = value.then;
+            } catch (e) {
+                return reject(promise, e);
+            }
         }
+
+        var ran = false;
+
         if (then) {
+
             setTimeout(function () {
-                then.call(value, function (x) {
-                    return fulfil(promise, x);
-                }, function (x) {
-                    return reject(promise, x);
-                });
+                try {
+                    then.call(value, function (x) {
+                        if(ran) return;
+                        ran = true;
+                        return fulfil(promise, x);
+                    }, function (x) {
+                        if(ran) return;
+                        ran = true;
+                        return reject(promise, x);
+                    });
+                } catch (e) {
+                    if(ran) return;
+                    ran = true;
+                    return reject(promise, e);
+                }
+
             }, 0);
+
+
         } else {
+            if(ran) return;
+            ran = true;
             promise.state = "fulfilled";
             promise.value = value;
             var reactions = promise.fulfilReactions;
@@ -139,23 +162,20 @@ Promise.reject = function (x) {
     });
 };
 
-var count = 0;
-
-Promise.resolve(1).then(function() {
-    return Object.create(null, {
-        then: {
-            get: function () {
-                count++;
-                return function thenMethodForX(onFulfilled) {
-                    onFulfilled("fulfilled");
-                };
-            }
+Promise.resolve(1).then(function () {
+    return {
+        then: function (onFulfilled) {
+            onFulfilled({
+                then: function (onFulfilled) {
+                    onFulfilled(2);
+                }
+            });
+            onFulfilled(100);
         }
-    });
-}).then(function(data) {
+    };
+}).then(function (data) {
     console.log("success ", data);
-    console.log(count);
-});
+}, console.log);
 
 
 module.exports = Promise;
