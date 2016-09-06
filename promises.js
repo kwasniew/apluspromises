@@ -40,8 +40,6 @@ function resolve(promise, value) {
                 return reject(promise, e);
             }
         } else {
-            if (ran) return;
-            ran = true;
             promise.state = "fulfilled";
             promise.value = value;
             var reactions = promise.fulfilReactions;
