@@ -7,7 +7,8 @@
     "promises-aplus-tests": "*"
   },
   "scripts": {
-    "test": "promises-aplus-tests test/adapter"
+    "test": "promises-aplus-tests test/adapter",
+    "test:es6": "promises-aplus-tests test/adapter_ES6"
   },
   "author": "Mateusz Kwaśniewski",
   "license": "MIT"
