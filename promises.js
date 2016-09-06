@@ -104,6 +104,14 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 
     return new Promise(function executor(resolve, reject) {
 
+        function safelyResolve(callback, value) {
+            try {
+                resolve(callback(value));
+            } catch (e) {
+                reject(e);
+            }
+        }
+
         if (!isFunction(onFulfilled)) {
             onFulfilled = function (x) {
                 return x;
@@ -118,34 +126,18 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
 
         if (originalPromise.state === "pending") {
             originalPromise.fulfilReactions.push(function (value) {
-                try {
-                    resolve(onFulfilled(value));
-                } catch (e) {
-                    reject(e);
-                }
+                safelyResolve(onFulfilled, value);
             });
             originalPromise.rejectReactions.push(function (value) {
-                try {
-                    resolve(onRejected(value));
-                } catch (e) {
-                    reject(e);
-                }
+                safelyResolve(onRejected, value);
             });
         } else if (originalPromise.state === "fulfilled") {
             setTimeout(function () {
-                try {
-                    resolve(onFulfilled(originalPromise.value));
-                } catch (e) {
-                    reject(e);
-                }
+                safelyResolve(onFulfilled, originalPromise.value);
             }, 0);
         } else if (originalPromise.state === "rejected") {
             setTimeout(function () {
-                try {
-                    resolve(onRejected(originalPromise.value));
-                } catch (e) {
-                    reject(e);
-                }
+                safelyResolve(onRejected, originalPromise.value)
             }, 0);
         }
     });
