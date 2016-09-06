@@ -1,60 +1,60 @@
-function Promise(executor) {
-    if (!isFunction(executor)) {
-        throw new TypeError("executor must be a function");
+class Promise {
+    constructor(executor) {
+        if (!isFunction(executor)) {
+            throw new TypeError("executor must be a function");
+        }
+
+        this.value = null;
+        this.reason = null;
+        this.state = "pending";
+        this.fulfilReactions = [];
+        this.rejectReactions = [];
+
+        try {
+            executor(x => resolve(this, x), x => reject(this, x));
+        } catch (e) {
+            reject(this, e);
+        }
     }
 
-    this.value = null;
-    this.reason = null;
-    this.state = "pending";
-    this.fulfilReactions = [];
-    this.rejectReactions = [];
+    then(onFulfilled, onRejected) {
+        return new Promise((resolve, reject) => {
 
-    try {
-        executor(x => resolve(this, x), x => reject(this, x));
-    } catch (e) {
-        reject(this, e);
+            function safelyResolve(callback, x) {
+                try {
+                    resolve(callback(x));
+                } catch (e) {
+                    reject(e);
+                }
+            }
+
+            if (!isFunction(onFulfilled)) {
+                onFulfilled = value => value;
+            }
+
+            if (!isFunction(onRejected)) {
+                onRejected = reason => reject(reason);
+            }
+
+            if (this.state === "pending") {
+                this.fulfilReactions.push(x => safelyResolve(onFulfilled, x));
+                this.rejectReactions.push(x => safelyResolve(onRejected, x));
+            } else if (this.state === "fulfilled") {
+                async(() => safelyResolve(onFulfilled, this.value));
+            } else if (this.state === "rejected") {
+                async(() => safelyResolve(onRejected, this.reason));
+            }
+        });
+    }
+
+    static resolve(x) {
+        return new Promise(resolve => resolve(x));
+    }
+
+    static reject(x) {
+        return new Promise((_, reject) => reject(x));
     }
 }
-
-Promise.prototype.then = function (onFulfilled, onRejected) {
-    var originalPromise = this;
-
-    return new Promise(function executor(resolve, reject) {
-
-        function safelyResolve(callback, x) {
-            try {
-                resolve(callback(x));
-            } catch (e) {
-                reject(e);
-            }
-        }
-
-        if (!isFunction(onFulfilled)) {
-            onFulfilled = value => value;
-        }
-
-        if (!isFunction(onRejected)) {
-            onRejected = reason => reject(reason);
-        }
-
-        if (originalPromise.state === "pending") {
-            originalPromise.fulfilReactions.push(x => safelyResolve(onFulfilled, x));
-            originalPromise.rejectReactions.push(x => safelyResolve(onRejected, x));
-        } else if (originalPromise.state === "fulfilled") {
-            async(() => safelyResolve(onFulfilled, originalPromise.value));
-        } else if (originalPromise.state === "rejected") {
-            async(() => safelyResolve(onRejected, originalPromise.reason));
-        }
-    });
-};
-
-Promise.resolve = function (x) {
-    return new Promise(resolve => resolve(x));
-};
-
-Promise.reject = function (x) {
-    return new Promise((_, reject) => reject(x));
-};
 
 function resolve(promise, x) {
     if (promise.state === "pending") {
