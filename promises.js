@@ -9,12 +9,15 @@ function fulfil(promise, value) {
             reject(promise, new TypeError("Can't resolve a promise with itself."));
         }
 
-        if (value && value.then) {
+        if(value) {
+            var then = value.then;
+        }
+        if (then) {
             setTimeout(function () {
-                value.then(function (x) {
-                    fulfil(promise, x);
+                then.call(value, function (x) {
+                    return fulfil(promise, x);
                 }, function (x) {
-                    reject(promise, x);
+                    return reject(promise, x);
                 });
             }, 0);
         } else {
@@ -135,6 +138,24 @@ Promise.reject = function (x) {
         reject(x);
     });
 };
+
+var count = 0;
+
+Promise.resolve(1).then(function() {
+    return Object.create(null, {
+        then: {
+            get: function () {
+                count++;
+                return function thenMethodForX(onFulfilled) {
+                    onFulfilled("fulfilled");
+                };
+            }
+        }
+    });
+}).then(function(data) {
+    console.log("success ", data);
+    console.log(count);
+});
 
 
 module.exports = Promise;
