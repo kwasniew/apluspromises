@@ -23,29 +23,22 @@ function resolve(promise, value) {
 
         var ran = false;
 
-
         if (typeof value === 'object' && typeof then === 'function') {
-
-            async(function () {
-                try {
-                    then.call(value, function (x) {
-                        if (ran) return;
-                        ran = true;
-                        return resolve(promise, x);
-                    }, function (x) {
-                        if (ran) return;
-                        ran = true;
-                        return reject(promise, x);
-                    });
-                } catch (e) {
+            try {
+                then.call(value, function (x) {
                     if (ran) return;
                     ran = true;
-                    return reject(promise, e);
-                }
-
-            });
-
-
+                    return resolve(promise, x);
+                }, function (x) {
+                    if (ran) return;
+                    ran = true;
+                    return reject(promise, x);
+                });
+            } catch (e) {
+                if (ran) return;
+                ran = true;
+                return reject(promise, e);
+            }
         } else {
             if (ran) return;
             ran = true;
@@ -158,6 +151,5 @@ Promise.reject = function (x) {
         reject(x);
     });
 };
-
 
 module.exports = Promise;
