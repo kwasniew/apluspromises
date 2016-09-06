@@ -1,12 +1,12 @@
-function isCallable(a) {
+function isFunction(a) {
     return typeof a === "function";
 }
 
-function fulfil(promise, value) {
+function resolve(promise, value) {
     if (promise.state === "pending") {
 
         if (value === promise) {
-            reject(promise, new TypeError("Can't resolve a promise with itself."));
+            reject(promise, new TypeError("Can't resolve a promise with itself"));
         }
 
         if (value) {
@@ -25,16 +25,16 @@ function fulfil(promise, value) {
             setTimeout(function () {
                 try {
                     then.call(value, function (x) {
-                        if(ran) return;
+                        if (ran) return;
                         ran = true;
-                        return fulfil(promise, x);
+                        return resolve(promise, x);
                     }, function (x) {
-                        if(ran) return;
+                        if (ran) return;
                         ran = true;
                         return reject(promise, x);
                     });
                 } catch (e) {
-                    if(ran) return;
+                    if (ran) return;
                     ran = true;
                     return reject(promise, e);
                 }
@@ -43,7 +43,7 @@ function fulfil(promise, value) {
 
 
         } else {
-            if(ran) return;
+            if (ran) return;
             ran = true;
             promise.state = "fulfilled";
             promise.value = value;
@@ -76,8 +76,8 @@ function reject(promise, value) {
 }
 
 function Promise(executor) {
-    if (!isCallable(executor)) {
-        throw new TypeError("executor must be a function.");
+    if (!isFunction(executor)) {
+        throw new TypeError("executor must be a function");
     }
 
     this.value = null;
@@ -88,7 +88,7 @@ function Promise(executor) {
     try {
         executor(
             function (x) {
-                fulfil(this, x);
+                resolve(this, x);
             }.bind(this),
             function (x) {
                 reject(this, x);
@@ -99,19 +99,19 @@ function Promise(executor) {
     }
 }
 
-Promise.prototype.then = function (onFulfilled, onFailure) {
+Promise.prototype.then = function (onFulfilled, onRejected) {
     var originalPromise = this;
 
     return new Promise(function executor(resolve, reject) {
 
-        if (!isCallable(onFulfilled)) {
+        if (!isFunction(onFulfilled)) {
             onFulfilled = function (x) {
                 return x;
             }
         }
 
-        if (!isCallable(onFailure)) {
-            onFailure = function (x) {
+        if (!isFunction(onRejected)) {
+            onRejected = function (x) {
                 return reject(x);
             };
         }
@@ -126,7 +126,7 @@ Promise.prototype.then = function (onFulfilled, onFailure) {
             });
             originalPromise.rejectReactions.push(function (value) {
                 try {
-                    resolve(onFailure(value));
+                    resolve(onRejected(value));
                 } catch (e) {
                     reject(e);
                 }
@@ -142,7 +142,7 @@ Promise.prototype.then = function (onFulfilled, onFailure) {
         } else if (originalPromise.state === "rejected") {
             setTimeout(function () {
                 try {
-                    resolve(onFailure(originalPromise.value));
+                    resolve(onRejected(originalPromise.value));
                 } catch (e) {
                     reject(e);
                 }
@@ -152,13 +152,13 @@ Promise.prototype.then = function (onFulfilled, onFailure) {
 };
 
 Promise.resolve = function (x) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve, _) {
         resolve(x);
     });
 };
 
 Promise.reject = function (x) {
-    return new Promise(function (Resolve, reject) {
+    return new Promise(function (_, reject) {
         reject(x);
     });
 };
