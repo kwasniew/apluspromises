@@ -1,14 +1,14 @@
 {
-  "name": "teachable-promises",
+  "name": "apluspromises",
   "version": "1.0.0",
-  "description": "Promises/A+ Compliant implementation for teaching purposes",
-  "main": "index.js",
+  "description": "Promises/A+ Compliant implementation for learning purposes",
+  "main": "promises.js",
   "devDependencies": {
     "promises-aplus-tests": "*"
   },
   "scripts": {
-    "test": "promises-aplus-tests test/my-adapter"
+    "test": "promises-aplus-tests test/adapter"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Mateusz Kwaśniewski",
+  "license": "MIT"
 }
