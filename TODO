@@ -13,7 +13,7 @@ Goals:
 - created for learning purposes
 - works with just ES5 features
 - use ubiquitous language from the spec
-- easy to read (subjective)
+- easy to read (subjective) at a cost of performance
 
 Inspired by:
 - https://github.com/robotlolita/robotlolita.github.io/blob/master/examples/promises/aplus/src/promises.js

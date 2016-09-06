@@ -42,20 +42,16 @@ function resolveThenable(promise, value, then) {
 
 function resolve(promise, value) {
     if (promise.state === "pending") {
-        if (value) {
-            try {
-                var then = value.then;
-            } catch (e) {
-                return reject(promise, e);
-            }
+        try {
+            var then = value.then;
+        } catch (e) {
+            reject(promise, e);
         }
-
         if (typeof value === "object" && typeof then === "function") {
             resolveThenable(promise, value, then);
         } else {
             resolveNonThenable(promise, value);
         }
-
     }
 }
 
