@@ -2,6 +2,10 @@ function isFunction(a) {
     return typeof a === "function";
 }
 
+function async(fn) {
+    setTimeout(fn, 0);
+}
+
 function resolve(promise, value) {
     if (promise.state === "pending") {
 
@@ -22,7 +26,7 @@ function resolve(promise, value) {
 
         if (typeof value === 'object' && typeof then === 'function') {
 
-            setTimeout(function () {
+            async(function () {
                 try {
                     then.call(value, function (x) {
                         if (ran) return;
@@ -39,7 +43,7 @@ function resolve(promise, value) {
                     return reject(promise, e);
                 }
 
-            }, 0);
+            });
 
 
         } else {
@@ -51,9 +55,9 @@ function resolve(promise, value) {
             promise.rejectReactions = [];
             promise.fulfilReactions = [];
             reactions.forEach(function (reaction) {
-                setTimeout(function () {
+                async(function () {
                     reaction(value);
-                }, 0);
+                });
             });
         }
 
@@ -68,9 +72,9 @@ function reject(promise, value) {
         promise.rejectReactions = [];
         promise.fulfilReactions = [];
         reactions.forEach(function (reaction) {
-            setTimeout(function () {
+            async(function () {
                 reaction(value);
-            }, 0);
+            });
         });
     }
 }
@@ -132,13 +136,13 @@ Promise.prototype.then = function (onFulfilled, onRejected) {
                 safelyResolve(onRejected, value);
             });
         } else if (originalPromise.state === "fulfilled") {
-            setTimeout(function () {
+            async(function () {
                 safelyResolve(onFulfilled, originalPromise.value);
-            }, 0);
+            });
         } else if (originalPromise.state === "rejected") {
-            setTimeout(function () {
+            async(function () {
                 safelyResolve(onRejected, originalPromise.value)
-            }, 0);
+            });
         }
     });
 };
