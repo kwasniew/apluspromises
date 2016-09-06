@@ -1,4 +1,4 @@
-var Promise = require('../promises');
+var Promise = require("../promises");
 
 module.exports = {
     resolved: Promise.resolve,
@@ -11,4 +11,4 @@ module.exports = {
         });
         return {promise, resolve, reject}
     }
-}
+};

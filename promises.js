@@ -53,7 +53,7 @@ function resolve(promise, value) {
             }
         }
 
-        if (typeof value === 'object' && typeof then === 'function') {
+        if (typeof value === "object" && typeof then === "function") {
             resolveThenable(promise, value, then);
         } else {
             resolveNonThenable(promise, value);
