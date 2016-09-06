@@ -20,7 +20,7 @@ function fulfil(promise, value) {
         var ran = false;
 
 
-        if (typeof then === 'function') {
+        if (typeof value === 'object' && typeof then === 'function') {
 
             setTimeout(function () {
                 try {
@@ -162,14 +162,6 @@ Promise.reject = function (x) {
         reject(x);
     });
 };
-
-Promise.resolve(1).then(function () {
-    return {
-        then: 5
-    };
-}).then(function (data) {
-    console.log("success ", data);
-}, console.log);
 
 
 module.exports = Promise;
