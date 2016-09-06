@@ -6,13 +6,45 @@ function async(fn) {
     setTimeout(fn, 0);
 }
 
+function resolveNonThenable(promise, value) {
+    promise.state = "fulfilled";
+    promise.value = value;
+    var reactions = promise.fulfilReactions;
+    promise.rejectReactions = [];
+    promise.fulfilReactions = [];
+    reactions.forEach(function (reaction) {
+        async(function () {
+            reaction(value);
+        });
+    });
+}
+
+function resolveThenable(promise, value, then) {
+    if (value === promise) {
+        reject(promise, new TypeError("Can't resolve a promise with itself"));
+    }
+
+    var ran = false;
+
+    try {
+        then.call(value, function (x) {
+            if (ran) return;
+            ran = true;
+            return resolve(promise, x);
+        }, function (x) {
+            if (ran) return;
+            ran = true;
+            return reject(promise, x);
+        });
+    } catch (e) {
+        if (ran) return;
+        ran = true;
+        return reject(promise, e);
+    }
+}
+
 function resolve(promise, value) {
     if (promise.state === "pending") {
-
-        if (value === promise) {
-            reject(promise, new TypeError("Can't resolve a promise with itself"));
-        }
-
         if (value) {
             try {
                 var then = value.then;
@@ -21,35 +53,10 @@ function resolve(promise, value) {
             }
         }
 
-        var ran = false;
-
         if (typeof value === 'object' && typeof then === 'function') {
-            try {
-                then.call(value, function (x) {
-                    if (ran) return;
-                    ran = true;
-                    return resolve(promise, x);
-                }, function (x) {
-                    if (ran) return;
-                    ran = true;
-                    return reject(promise, x);
-                });
-            } catch (e) {
-                if (ran) return;
-                ran = true;
-                return reject(promise, e);
-            }
+            resolveThenable(promise, value, then);
         } else {
-            promise.state = "fulfilled";
-            promise.value = value;
-            var reactions = promise.fulfilReactions;
-            promise.rejectReactions = [];
-            promise.fulfilReactions = [];
-            reactions.forEach(function (reaction) {
-                async(function () {
-                    reaction(value);
-                });
-            });
+            resolveNonThenable(promise, value);
         }
 
     }
